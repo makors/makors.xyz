@@ -60,30 +60,26 @@ function App() {
             transition={{ duration: 0.6, delay: 1.2 }}
           >
             i don't have <i>too much</i> to say here, but i like to build, ship, and constantly iterate.
-            i'm currently working on a few projects and am a sysadmin at the <motion.a 
+            i'm currently working on a few projects and am a sysadmin at the <a 
               href="https://github.com/tjCSL" 
               target="_blank" 
               rel="noopener noreferrer" 
               className="text-blue-500 hover:text-blue-400"
-              whileHover={{ scale: 1.05 }}
-              transition={{ type: "spring", stiffness: 400, damping: 17 }}
-            >tjCSL</motion.a>.
+            >tjCSL</a>.
             personally, i think that properietary software is the root of all evil (but a neccessary evil). i publish my other tangents on my blog,
-            <motion.a 
+            <a 
               href="https://readme.sh" 
               target="_blank" 
               rel="noopener noreferrer" 
               className="text-blue-500 hover:text-blue-400"
-              whileHover={{ scale: 1.05 }}
-              transition={{ type: "spring", stiffness: 400, damping: 17 }}
-            > readme.sh</motion.a>.
+            > readme.sh</a>.
           </motion.p>
           <motion.p
             initial={{ x: -20, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
             transition={{ duration: 0.6, delay: 1.4 }}
           >
-            i'm proficient in: <motion.u whileHover={{ scale: 1.1 }} transition={{ type: "spring", stiffness: 400, damping: 17 }}>rust</motion.u>, <motion.u whileHover={{ scale: 1.1 }} transition={{ type: "spring", stiffness: 400, damping: 17 }}>python</motion.u>, <motion.u whileHover={{ scale: 1.1 }} transition={{ type: "spring", stiffness: 400, damping: 17 }}>typescript</motion.u>, and <motion.u whileHover={{ scale: 1.1 }} transition={{ type: "spring", stiffness: 400, damping: 17 }}>go</motion.u>. i'm also familiar with <motion.u whileHover={{ scale: 1.1 }} transition={{ type: "spring", stiffness: 400, damping: 17 }}>react</motion.u>, <motion.u whileHover={{ scale: 1.1 }} transition={{ type: "spring", stiffness: 400, damping: 17 }}>css</motion.u>, and <motion.u whileHover={{ scale: 1.1 }} transition={{ type: "spring", stiffness: 400, damping: 17 }}>ux design</motion.u>.
+            i'm proficient in: <u>rust</u>, <u>python</u>, <u>typescript</u>, and <u>go</u>. i'm also familiar with <u>react</u>, <u>css</u>, and <u>ux design</u>.
           </motion.p>
           <motion.p
             initial={{ x: -20, opacity: 0 }}
@@ -101,56 +97,45 @@ function App() {
                 initial={{ x: -15, opacity: 0 }}
                 animate={{ x: 0, opacity: 1 }}
                 transition={{ duration: 0.5, delay: 2.0 }}
-                whileHover={{ x: 5 }}
               >
-                <motion.a 
+                <a 
                   href="https://github.com/makors/dexrs" 
                   target="_blank" 
                   rel="noopener noreferrer" 
                   className="text-blue-500 hover:text-blue-400"
-                  whileHover={{ scale: 1.05 }}
-                  transition={{ type: "spring", stiffness: 400, damping: 17 }}
-                >dexrs </motion.a>
+                >dexrs </a>
                 - a rust library for interacting with the dexcom api
               </motion.li>
               <motion.li
                 initial={{ x: -15, opacity: 0 }}
                 animate={{ x: 0, opacity: 1 }}
                 transition={{ duration: 0.5, delay: 2.2 }}
-                whileHover={{ x: 5 }}
               >
-                <motion.a 
+                <a 
                   href="https://github.com/makors/ticketize" 
                   target="_blank" 
                   rel="noopener noreferrer" 
                   className="text-blue-500 hover:text-blue-400"
-                  whileHover={{ scale: 1.05 }}
-                  transition={{ type: "spring", stiffness: 400, damping: 17 }}
-                >ticketize </motion.a>
+                >ticketize </a>
                 - an open source event ticketing system for schools (in progress)
               </motion.li>
               <motion.li
                 initial={{ x: -15, opacity: 0 }}
                 animate={{ x: 0, opacity: 1 }}
                 transition={{ duration: 0.5, delay: 2.4 }}
-                whileHover={{ x: 5 }}
               >
-                <motion.a 
+                <a 
                   href="https://github.com/ShmooConTix/ticket-bot" 
                   target="_blank" 
                   rel="noopener noreferrer" 
                   className="text-blue-500 hover:text-blue-400"
-                  whileHover={{ scale: 1.05 }}
-                  transition={{ type: "spring", stiffness: 400, damping: 17 }}
-                >shmoocon ticket bot </motion.a> (completed) 
-                - a proof-of-concept bot to buy tickets for <motion.a 
+                >shmoocon ticket bot </a> (completed) 
+                - a proof-of-concept bot to buy tickets for <a 
                   href="https://shmoocon.org" 
                   target="_blank" 
                   rel="noopener noreferrer" 
                   className="text-blue-500 hover:text-blue-400"
-                  whileHover={{ scale: 1.05 }}
-                  transition={{ type: "spring", stiffness: 400, damping: 17 }}
-                >shmoocon</motion.a>
+                >shmoocon</a>
               </motion.li>
             </motion.ul>
           </motion.p>
