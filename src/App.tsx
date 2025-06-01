@@ -119,7 +119,7 @@ function App() {
                 >ticketize </a>
                 - an open source event ticketing system for schools (in progress)
               </motion.li>
-              <motion.li
+              {/* <motion.li
                 initial={{ x: -15, opacity: 0 }}
                 animate={{ x: 0, opacity: 1 }}
                 transition={{ duration: 0.5, delay: 2.4 }}
@@ -136,7 +136,7 @@ function App() {
                   rel="noopener noreferrer" 
                   className="text-blue-500 hover:text-blue-400"
                 >shmoocon</a>
-              </motion.li>
+              </motion.li> */}
             </motion.ul>
           </motion.p>
           <motion.p
