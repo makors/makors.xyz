@@ -1,1 +1,1 @@
-declare module '@fontsource-variable/figtree'; 
+declare module '@fontsource-variable/geist';
