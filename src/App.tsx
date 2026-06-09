@@ -18,7 +18,7 @@ import { LuEye } from 'react-icons/lu'
 const about: ReactNode[] = [
   <>sysadmin at <a href="https://sysadmins.tjhsst.edu" target="_blank" rel="noopener noreferrer" className="underline decoration-white/20 underline-offset-[4px] hover:decoration-white transition">tjCSL</a>.</>,
   'building dev tools, ticketing, and small experiments.',
-  'writing the occasional tangent at readme.sh.',
+  <>writing the occasional tangent at <a href="https://readme.sh" target="_blank" rel="noopener noreferrer" className="underline decoration-white/20 underline-offset-[4px] hover:decoration-white transition">readme.sh</a>.</>,
   <>shipping things that matter at <a href="https://discern.computer" target="_blank" rel="noopener noreferrer" className="underline decoration-white/20 underline-offset-[4px] hover:decoration-white transition">discern.computer</a>.</>,
 ]
 
