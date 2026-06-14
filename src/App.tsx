@@ -2,18 +2,7 @@ import './App.css'
 import '@fontsource-variable/geist'
 import confetti from 'canvas-confetti'
 import { ArrowUpRight } from 'lucide-react'
-import type { IconType } from 'react-icons'
 import type { ReactNode } from 'react'
-import {
-  SiRust,
-  SiPython,
-  SiTypescript,
-  SiGo,
-  SiReact,
-  SiCss,
-  SiNextdotjs,
-} from 'react-icons/si'
-import { LuEye } from 'react-icons/lu'
 
 const about: ReactNode[] = [
   <>sysadmin at <a href="https://sysadmins.tjhsst.edu" target="_blank" rel="noopener noreferrer" className="underline decoration-white/20 underline-offset-[4px] hover:decoration-white transition">tjCSL</a>.</>,
@@ -21,23 +10,6 @@ const about: ReactNode[] = [
   <>writing the occasional tangent at <a href="https://readme.sh" target="_blank" rel="noopener noreferrer" className="underline decoration-white/20 underline-offset-[4px] hover:decoration-white transition">readme.sh</a>.</>,
   <>shipping things that matter at <a href="https://discern.computer" target="_blank" rel="noopener noreferrer" className="underline decoration-white/20 underline-offset-[4px] hover:decoration-white transition">discern.computer</a>.</>,
 ]
-
-type StackEntry = { name: string; icon: IconType; color: string }
-
-const stack: { proficient: StackEntry[]; familiar: StackEntry[] } = {
-  proficient: [
-    { name: 'Python', icon: SiPython, color: '#3776AB' },
-    { name: 'TypeScript', icon: SiTypescript, color: '#3178C6' },
-  ],
-  familiar: [
-    { name: 'React', icon: SiReact, color: '#61DAFB' },
-    { name: 'Next.js', icon: SiNextdotjs, color: '#ffffff' },
-    { name: 'CSS', icon: SiCss, color: '#1572B6' },
-    { name: 'UX/DX', icon: LuEye, color: '#C77DFF' },
-    { name: 'Go', icon: SiGo, color: '#00ADD8' },
-    { name: 'Rust', icon: SiRust, color: '#DEA584' },
-  ],
-}
 
 const projects = [
   {
@@ -131,42 +103,6 @@ function App() {
         {/* about */}
         <Section label="about">
           <Bullets items={about} />
-        </Section>
-
-        <Rule />
-
-        {/* stack */}
-        <Section label="stack">
-          <div className="flex flex-col gap-6">
-            <div>
-              <p className="mb-3 text-[12px] text-white/30">proficient</p>
-              <ul className="flex flex-wrap gap-x-5 gap-y-2.5">
-                {stack.proficient.map(({ name, icon: Icon, color }) => (
-                  <li
-                    key={name}
-                    className="inline-flex items-center gap-2 text-[15px] text-white/85 md:text-base"
-                  >
-                    <Icon size={16} style={{ color }} />
-                    {name}
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <div>
-              <p className="mb-3 text-[12px] text-white/30">familiar</p>
-              <ul className="flex flex-wrap gap-x-5 gap-y-2.5">
-                {stack.familiar.map(({ name, icon: Icon, color }) => (
-                  <li
-                    key={name}
-                    className="inline-flex items-center gap-2 text-[15px] text-white/65 md:text-base"
-                  >
-                    <Icon size={16} style={{ color }} />
-                    {name}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
         </Section>
 
         <Rule />
