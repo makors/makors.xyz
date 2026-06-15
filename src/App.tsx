@@ -45,10 +45,10 @@ function Section({
 }) {
   return (
     <section className="grid grid-cols-12 gap-x-8 gap-y-3 py-10 md:py-14">
-      <div className="col-span-12 md:col-span-3">
+      <div className="col-span-12 md:col-span-3 hidden">
         <h2 className="text-[13px] text-white/40">{label}</h2>
       </div>
-      <div className="col-span-12 md:col-span-9">{children}</div>
+      <div className="col-span-12 md:col-span-12">{children}</div>
     </section>
   )
 }
