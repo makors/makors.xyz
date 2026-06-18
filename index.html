@@ -3,34 +3,84 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    
-    <!-- seo - meta tags -->
-    <meta name="description" content="makors' portfolio - Software developer and creative technologist showcasing innovative projects and technical expertise." />
-    <meta name="keywords" content="makors, portfolio, software developer, web development, programming, projects, technology" />
+
+    <title>makors</title>
+    <meta
+      name="description"
+      content="makors is a developer building small, useful software, dev tools, and experiments."
+    />
     <meta name="author" content="makors" />
-    <meta name="robots" content="index, follow" /> <!-- beep boop -->
-    <link rel="canonical" href="https://makors.xyz" />
-    
-    <!-- seo - open graph -->
+    <meta name="robots" content="index, follow, max-image-preview:large" />
+    <meta name="theme-color" content="#020202" />
+    <link rel="canonical" href="https://makors.xyz/" />
+
     <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://makors.xyz" />
-    <meta property="og:title" content="makors' portfolio - Software Developer" />
-    <meta property="og:description" content="i'm makors, a student, experimenter, and developer. i like to build, ship, and constantly iterate. currently working on projects like dexrs and ticketize, sysadmin at tjCSL, and sharing tangents on readme.sh. proficient in rust, python, typescript, and go." />
-    <meta property="og:site_name" content="makors portfolio" />
-    
-    <!-- seo - theme color -->
-    <meta name="theme-color" content="#000000" />
-    <meta name="msapplication-TileColor" content="#000000" />
-    
+    <meta property="og:site_name" content="makors" />
+    <meta property="og:title" content="makors" />
+    <meta
+      property="og:description"
+      content="developer building small, useful software, dev tools, and experiments."
+    />
+    <meta property="og:url" content="https://makors.xyz/" />
+
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="makors" />
+    <meta
+      name="twitter:description"
+      content="developer building small, useful software, dev tools, and experiments."
+    />
+
     <link
       rel="icon"
       href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>👋</text></svg>"
     />
-    
-    <title>makors - software developer</title>
+
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "Person",
+            "@id": "https://makors.xyz/#person",
+            "name": "makors",
+            "url": "https://makors.xyz/",
+            "email": "mailto:makors@discern.computer",
+            "sameAs": [
+              "https://github.com/makors",
+              "https://readme.sh"
+            ],
+            "knowsAbout": [
+              "software development",
+              "developer tools",
+              "web development"
+            ]
+          },
+          {
+            "@type": "WebSite",
+            "@id": "https://makors.xyz/#website",
+            "name": "makors",
+            "url": "https://makors.xyz/",
+            "publisher": {
+              "@id": "https://makors.xyz/#person"
+            }
+          }
+        ]
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>
+    <noscript>
+      <main>
+        <h1>makors</h1>
+        <p>developer building small, useful software, dev tools, and experiments.</p>
+        <p>
+          <a href="mailto:makors@discern.computer">email</a>
+          <a href="https://github.com/makors">github</a>
+          <a href="https://readme.sh">writing</a>
+        </p>
+      </main>
+    </noscript>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
