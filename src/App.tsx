@@ -1,175 +1,149 @@
 import './App.css'
 import '@fontsource-variable/geist'
-import confetti from 'canvas-confetti'
-import { ArrowUpRight } from 'lucide-react'
-import type { ReactNode } from 'react'
+import { useEffect, useRef } from 'react'
+import { PARAMS, brightnessAt, glyphFor } from './blackhole'
 
-const about: ReactNode[] = [
-  <>sysadmin at <a href="https://sysadmins.tjhsst.edu" target="_blank" rel="noopener noreferrer" className="underline decoration-white/20 underline-offset-[4px] hover:decoration-white transition">tjCSL</a>.</>,
-  'building dev tools, ticketing, and small experiments.',
-  <>writing the occasional tangent at <a href="https://readme.sh" target="_blank" rel="noopener noreferrer" className="underline decoration-white/20 underline-offset-[4px] hover:decoration-white transition">readme.sh</a>.</>,
-  <>shipping things that matter at <a href="https://discern.computer" target="_blank" rel="noopener noreferrer" className="underline decoration-white/20 underline-offset-[4px] hover:decoration-white transition">discern.computer</a>.</>,
-]
+const SCRAMBLE = '.,:;-~=+*o#%@'
 
-const projects = [
-  {
-    name: 'dexrs',
-    href: 'https://github.com/makors/dexrs',
-    desc: 'Rust library for the Dexcom API.',
-    status: 'active',
-  },
-  {
-    name: 'openboxoffice',
-    href: 'https://openboxoffice.org',
-    desc: 'Open-source event ticketing for schools.',
-    status: 'in progress',
-  },
-] as const
+const STILL_T = 2.4
+const DRIFT_SPEED = 0.00075
+const ROTATE_SPEED = 0.00009
+const REVEAL_MS = 1200
+const WARP_MS = 1450
 
-const links = [
-  { label: 'email', value: 'makors@discern.computer', href: 'mailto:makors@discern.computer' },
-  {
-    label: 'github',
-    value: 'github.com/makors',
-    href: 'https://github.com/makors',
-  },
-  { label: 'writing', value: 'readme.sh', href: 'https://readme.sh' },
-] as const
+// Autonomous black-hole field: the disk breathes and rotates on its own while click,
+// Enter, or Space fires a short gravitational pulse through the ASCII.
+function useBlackHole(
+  ref: React.RefObject<HTMLPreElement | null>,
+  triggerWarp: React.MutableRefObject<() => void>,
+) {
+  useEffect(() => {
+    const params = { ...PARAMS }
+    const { cols, rows } = params
+    const N = cols * rows
 
-function Section({
-  label,
-  children,
-}: {
-  label: string
-  children: React.ReactNode
-}) {
-  return (
-    <section className="grid grid-cols-12 gap-x-8 gap-y-3 py-10 md:py-14">
-      <div className="col-span-12 md:col-span-3 hidden">
-        <h2 className="text-[13px] text-white/40">{label}</h2>
-      </div>
-      <div className="col-span-12 md:col-span-12">{children}</div>
-    </section>
-  )
-}
+    // reveal timing, measured from the true center of the grid outward
+    const cx = (cols - 1) / 2
+    const cy = (rows - 1) / 2
+    const maxD = Math.hypot(cx, cy * params.aspect) || 1
+    const revealAt = new Float32Array(N)
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        const d = Math.hypot(c - cx, (r - cy) * params.aspect) / maxD
+        const at = d * REVEAL_MS + Math.random() * 180
+        revealAt[r * cols + c] = at
+      }
+    }
 
-function Rule() {
-  return <hr className="border-0 border-t border-white/10" />
-}
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
-function Bullets({ items }: { items: ReactNode[] }) {
-  return (
-    <ul className="flex flex-col gap-2.5 text-[15px] leading-relaxed text-white/80 md:text-base">
-      {items.map((line, i) => (
-        <li key={i} className="flex gap-3">
-          <span aria-hidden className="select-none text-white/30">—</span>
-          <span>{line}</span>
-        </li>
-      ))}
-    </ul>
-  )
+    let pulseStart = -Infinity
+
+    const trigger = () => {
+      if (reduce) return
+      pulseStart = performance.now()
+      if (!raf) raf = requestAnimationFrame(render)
+    }
+    triggerWarp.current = trigger
+
+    const onKey = (e: KeyboardEvent) => {
+      if (e.code === 'Space' || e.code === 'Enter') {
+        e.preventDefault()
+        trigger()
+      }
+    }
+    window.addEventListener('keydown', onKey)
+
+    let start = 0
+    let raf = 0
+    const render = (now: number) => {
+      if (!start) start = now
+      const elapsed = now - start
+      const pulseElapsed = now - pulseStart
+      const pulse = pulseElapsed >= 0 && pulseElapsed < WARP_MS ? pulseElapsed / WARP_MS : 1
+      const warpShape = pulse < 1 ? Math.sin(pulse * Math.PI) ** 0.72 : 0
+      const t = STILL_T + elapsed * DRIFT_SPEED + warpShape * 1.8
+
+      params.pa = PARAMS.pa + elapsed * ROTATE_SPEED + warpShape * 0.08
+      params.warp = warpShape
+      params.shockR = params.rh + pulse * 0.82
+
+      let frame = ''
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          const i = r * cols + c
+          const b = brightnessAt(params, c, r, t)
+          const target = glyphFor(params, b, c, r, t)
+
+          if (!reduce && elapsed < revealAt[i]!) {
+            // still resolving: scramble lit-ish cells, keep the void/background dark
+            frame += b > 0.04 ? SCRAMBLE[(Math.random() * SCRAMBLE.length) | 0] : ' '
+          } else {
+            frame += b > 0.001 ? target : ' '
+          }
+        }
+        frame += '\n'
+      }
+
+      if (ref.current) ref.current.textContent = frame
+      if (reduce) {
+        raf = 0
+        return
+      }
+      raf = requestAnimationFrame(render)
+    }
+
+    raf = requestAnimationFrame(render)
+    return () => {
+      cancelAnimationFrame(raf)
+      window.removeEventListener('keydown', onKey)
+    }
+  }, [ref, triggerWarp])
 }
 
 function App() {
-  const burst = () =>
-    confetti({
-      particleCount: 80,
-      spread: 60,
-      startVelocity: 35,
-      ticks: 120,
-      origin: { y: 0.35 },
-      colors: ['#ffffff', '#dddddd', '#888888'],
-    })
+  const artRef = useRef<HTMLPreElement>(null)
+  const warpRef = useRef<() => void>(() => {})
+
+  useBlackHole(artRef, warpRef)
 
   return (
-    <main className="min-h-screen w-full bg-[#020202] text-white">
-      <div className="mx-auto w-full max-w-3xl px-4 py-16 md:px-6 md:py-24">
-        <div className="animated-border bg-[#020202] px-6 py-2 md:px-12 md:py-4">
-        {/* hero */}
-        <section className="py-10 md:py-14">
-          <h1
-            onClick={burst}
-            className="cursor-pointer select-none text-[clamp(1.75rem,5vw,2.75rem)] font-medium leading-[1] tracking-[-0.035em]"
-          >
-            hello, world.
-          </h1>
-          <p className="mt-4 text-[15px] text-white/70 md:text-base">
-            hey! i'm makors — i ship things that matter.
-          </p>
-        </section>
+    <main className="flex min-h-screen w-full flex-col items-center justify-center overflow-hidden bg-[#020202] px-4 py-8 text-white sm:px-6">
+      <pre
+        ref={artRef}
+        aria-label="Interactive ASCII black hole animation"
+        onClick={() => warpRef.current()}
+        tabIndex={0}
+        className="ascii-stage cursor-pointer select-none leading-[0.92] text-[clamp(3.2px,0.92vw,7.6px)] outline-none [font-family:ui-monospace,SFMono-Regular,Menlo,monospace]"
+      />
 
-        <Rule />
+      <h1 className="mt-8 text-[15px] font-semibold tracking-[-0.01em] text-white/95">
+        makors
+      </h1>
 
-        {/* about */}
-        <Section label="about">
-          <Bullets items={about} />
-        </Section>
-
-        <Rule />
-
-        {/* work */}
-        <Section label="work">
-          <ul className="flex flex-col">
-            {projects.map((p, i) => (
-              <li key={p.name}>
-                {i > 0 && <div className="my-4 h-px bg-white/[0.06]" />}
-                <a
-                  href={p.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="group flex flex-col gap-1"
-                >
-                  <div className="flex items-baseline justify-between gap-4">
-                    <span className="inline-flex items-center gap-1.5 text-[15px] text-white md:text-base">
-                      {p.name}
-                      <ArrowUpRight
-                        size={14}
-                        strokeWidth={1.5}
-                        className="text-white/40 transition-all group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-white"
-                      />
-                    </span>
-                    <span className="text-[12px] text-white/35">
-                      {p.status}
-                    </span>
-                  </div>
-                  <p className="text-[14px] leading-relaxed text-white/55 md:text-[15px]">
-                    {p.desc}
-                  </p>
-                </a>
-              </li>
-            ))}
-          </ul>
-        </Section>
-
-        <Rule />
-
-        {/* contact */}
-        <Section label="elsewhere">
-          <ul className="flex flex-col gap-3">
-            {links.map((l) => (
-              <li key={l.label}>
-                <a
-                  href={l.href}
-                  target={l.href.startsWith('http') ? '_blank' : undefined}
-                  rel={
-                    l.href.startsWith('http') ? 'noopener noreferrer' : undefined
-                  }
-                  className="group inline-flex items-baseline gap-4"
-                >
-                  <span className="w-20 text-[12px] text-white/35">
-                    {l.label}
-                  </span>
-                  <span className="text-[15px] text-white/85 underline decoration-white/15 underline-offset-[6px] transition group-hover:decoration-white md:text-base">
-                    {l.value}
-                  </span>
-                </a>
-              </li>
-            ))}
-          </ul>
-        </Section>
-
-        </div>
-      </div>
+      <p className="mt-2.5 flex flex-wrap items-center justify-center gap-x-2.5 gap-y-1 text-[12px] tracking-[0.01em] text-white/40">
+        <a href="mailto:makors@discern.computer" className="transition-colors hover:text-white">
+          email
+        </a>
+        <span aria-hidden className="text-white/15">|</span>
+        <a
+          href="https://github.com/makors"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="transition-colors hover:text-white"
+        >
+          github
+        </a>
+        <span aria-hidden className="text-white/15">|</span>
+        <a
+          href="https://readme.sh"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="transition-colors hover:text-white"
+        >
+          writing
+        </a>
+      </p>
     </main>
   )
 }
