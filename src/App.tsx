@@ -114,7 +114,7 @@ function App() {
         aria-label="Interactive ASCII black hole animation"
         onClick={() => warpRef.current()}
         tabIndex={0}
-        className="ascii-stage cursor-pointer select-none leading-[0.92] text-[clamp(3.2px,0.92vw,7.6px)] outline-none [font-family:ui-monospace,SFMono-Regular,Menlo,monospace]"
+        className="ascii-stage cursor-pointer select-none leading-[0.92] text-[clamp(4.5px,1.4vw,7.6px)] outline-none [font-family:ui-monospace,SFMono-Regular,Menlo,monospace]"
       />
 
       <h1 className="mt-8 text-[15px] font-semibold tracking-[-0.01em] text-white/95">
