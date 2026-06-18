@@ -23,7 +23,8 @@ body {
 
 .ascii-stage {
   margin: 0;
-  max-width: 100%;
+  width: max-content;
+  max-width: none;
   overflow: hidden;
   white-space: pre;
   color: transparent;
