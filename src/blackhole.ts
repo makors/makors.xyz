@@ -4,8 +4,14 @@
 // The disk is a tilted ellipse: inclination `flat` = sin(i) (1 = face-on, ~0.25 = edge-on)
 // and `pa` is the position angle of the projected ellipse on screen. The event horizon
 // and photon ring stay circular (a sphere projects to a circle at any inclination).
-// `warp` drives a transient pulse: the void swells, the ring brightens, and a shockwave
-// expands outward - set it to 1 and let it decay; `shockR` tracks the wave front.
+// `warp` is a soft aggregate of active ripples. Each ripple is an expanding ring
+// that can overlap with other user-triggered ripples.
+
+export type Ripple = {
+  radius: number
+  width: number
+  strength: number
+}
 
 export type BlackHoleParams = {
   cols: number
@@ -25,8 +31,8 @@ export type BlackHoleParams = {
   jet: number // polar jet strength
   aspect: number // char cell height / width
   ramp: string // glyph ramp, dark -> bright
-  warp: number // 0..1 transient pulse intensity
-  shockR: number // expanding shockwave front radius, unit
+  warp: number // 0..1 aggregate ripple intensity
+  ripples: readonly Ripple[] // expanding user-triggered ripple rings
   shockAmp: number // shockwave peak brightness
 }
 
@@ -134,10 +140,14 @@ export function brightnessAt(p: BlackHoleParams, c: number, r: number, t: number
 
   b += p.glow * Math.exp(-(sr * sr) / 0.9) * (0.14 + 0.1 * Math.sin(phi * 2 + t))
 
-  if (p.warp > 0.02) {
-    const sd = Math.abs(sr - p.shockR)
-    b = Math.max(b, p.shockAmp * p.warp * gauss(sd, 0.09))
-    b += 0.14 * p.warp * Math.sin(sr * 32 - t * 6) * Math.exp(-(sr * sr) / 0.55)
+  if (p.ripples.length) {
+    for (const ripple of p.ripples) {
+      const sd = Math.abs(sr - ripple.radius)
+      const ring = p.shockAmp * ripple.strength * gauss(sd, ripple.width)
+      const afterglow = 0.035 * ripple.strength * Math.sin((sr - ripple.radius) * 42 - t * 5)
+      b = Math.max(b, ring)
+      b += afterglow * Math.exp(-(sd * sd) / 0.1) * Math.exp(-(sr * sr) / 0.65)
+    }
   }
 
   if (sr < p.rh * (1 + p.warp * 0.3)) b = 0
@@ -178,6 +188,6 @@ export const PARAMS: BlackHoleParams = {
   aspect: 2.05,
   ramp: ' .`^",:;Il!i><~+_-?][}{1)(|\\/tfjrxnuvczXYUJCLQ0OZmwqpdbkhao*#MW&8%B@$',
   warp: 0,
-  shockR: 0.22,
+  ripples: [],
   shockAmp: 0.82,
 }

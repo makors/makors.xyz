@@ -1,7 +1,7 @@
 import './App.css'
 import '@fontsource-variable/geist'
 import { useEffect, useRef } from 'react'
-import { PARAMS, brightnessAt, glyphFor } from './blackhole'
+import { PARAMS, type Ripple, brightnessAt, glyphFor } from './blackhole'
 
 const SCRAMBLE = '.,:;-~=+*o#%@'
 
@@ -9,10 +9,13 @@ const STILL_T = 2.4
 const DRIFT_SPEED = 0.00075
 const ROTATE_SPEED = 0.00009
 const REVEAL_MS = 1200
-const WARP_MS = 1450
+const RIPPLE_MS = 1850
+const RIPPLE_START = 0.28
+const RIPPLE_END = 1.28
+const MAX_RIPPLES = 7
 
 // Autonomous black-hole field: the disk breathes and rotates on its own while click,
-// Enter, or Space fires a short gravitational pulse through the ASCII.
+// Enter, or Space adds an expanding ripple ring through the ASCII.
 function useBlackHole(
   ref: React.RefObject<HTMLPreElement | null>,
   triggerWarp: React.MutableRefObject<() => void>,
@@ -37,11 +40,13 @@ function useBlackHole(
 
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
-    let pulseStart = -Infinity
+    const rippleStarts: number[] = []
 
     const trigger = () => {
       if (reduce) return
-      pulseStart = performance.now()
+      const now = performance.now()
+      rippleStarts.push(now)
+      if (rippleStarts.length > MAX_RIPPLES) rippleStarts.splice(0, rippleStarts.length - MAX_RIPPLES)
       if (!raf) raf = requestAnimationFrame(render)
     }
     triggerWarp.current = trigger
@@ -49,7 +54,7 @@ function useBlackHole(
     const onKey = (e: KeyboardEvent) => {
       if (e.code === 'Space' || e.code === 'Enter') {
         e.preventDefault()
-        trigger()
+        if (!e.repeat) trigger()
       }
     }
     window.addEventListener('keydown', onKey)
@@ -59,14 +64,29 @@ function useBlackHole(
     const render = (now: number) => {
       if (!start) start = now
       const elapsed = now - start
-      const pulseElapsed = now - pulseStart
-      const pulse = pulseElapsed >= 0 && pulseElapsed < WARP_MS ? pulseElapsed / WARP_MS : 1
-      const warpShape = pulse < 1 ? Math.sin(pulse * Math.PI) ** 0.72 : 0
-      const t = STILL_T + elapsed * DRIFT_SPEED + warpShape * 1.8
+      while (rippleStarts.length && now - rippleStarts[0]! > RIPPLE_MS) rippleStarts.shift()
 
-      params.pa = PARAMS.pa + elapsed * ROTATE_SPEED + warpShape * 0.08
-      params.warp = warpShape
-      params.shockR = params.rh + pulse * 0.82
+      let rippleLift = 0
+      const ripples: Ripple[] = rippleStarts.map((rippleStart) => {
+        const progress = Math.max(0, Math.min(1, (now - rippleStart) / RIPPLE_MS))
+        const easeOut = 1 - (1 - progress) ** 2.35
+        const fade = (1 - progress) ** 0.72
+        const crest = Math.sin(progress * Math.PI) ** 0.45
+        const strength = fade * crest
+        rippleLift = Math.max(rippleLift, strength)
+
+        return {
+          radius: RIPPLE_START + (RIPPLE_END - RIPPLE_START) * easeOut,
+          width: 0.035 + progress * 0.045,
+          strength,
+        }
+      })
+
+      const t = STILL_T + elapsed * DRIFT_SPEED + rippleLift * 0.55
+
+      params.pa = PARAMS.pa + elapsed * ROTATE_SPEED + rippleLift * 0.025
+      params.warp = rippleLift * 0.34
+      params.ripples = ripples
 
       let frame = ''
       for (let r = 0; r < rows; r++) {
