@@ -1,0 +1,28 @@
+{
+    "$schema": "node_modules/wrangler/config-schema.json",
+    "name": "makors-cdn",
+    "main": "src/index.ts",
+    "compatibility_date": "2026-09-18",
+    "observability": { "enabled": true },
+
+    // Access is zone-scoped, so it cannot protect a workers.dev URL. Keeping
+    // the subdomain off means cdn.makors.xyz is the only way in.
+    "workers_dev": false,
+
+    // cdn.makors.xyz is created as a Worker custom domain on first deploy.
+    "routes": [
+        { "pattern": "cdn.makors.xyz", "custom_domain": true }
+    ],
+
+    "r2_buckets": [
+        { "binding": "BUCKET", "bucket_name": "makors-cdn" }
+    ],
+
+    "vars": {
+        // The Zero Trust team domain and the Access application's AUD tag.
+        // If either is empty, /admin and /api/* fail closed.
+        "ACCESS_TEAM_DOMAIN": "makors.cloudflareaccess.com",
+        "ACCESS_AUD": "a7cf36e9d1b5e688745db6aca096c2ac9727902240af587c90f6c983ddf2a88c",
+        "PUBLIC_BASE": "https://cdn.makors.xyz"
+    }
+}
