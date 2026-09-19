@@ -10,9 +10,17 @@
 
 export const MANIFEST_KEY = "index.json";
 
+export interface PhotoSource {
+    key: string;
+    src: string;
+    width: number;
+}
+
 export interface PhotoEntry {
     key: string;
     src: string;
+    /** Smaller renditions of the same photo, for the site's srcset. */
+    sources?: PhotoSource[];
     alt: string;
     caption: string;
     date: string;
@@ -45,6 +53,11 @@ export async function writeManifest(bucket: R2Bucket, photos: PhotoEntry[]): Pro
 
 /** Strips the bookkeeping the site does not need. */
 export function publicView(entry: PhotoEntry) {
+    const sources = [...(entry.sources ?? [])]
+        .filter((source) => source.width > 0)
+        .sort((a, b) => a.width - b.width)
+        .map((source) => ({ src: source.src, width: source.width }));
+
     return {
         src: entry.src,
         alt: entry.alt || entry.caption,
@@ -52,6 +65,7 @@ export function publicView(entry: PhotoEntry) {
         height: entry.height,
         caption: entry.caption || undefined,
         date: entry.date || undefined,
+        sources: sources.length > 0 ? sources : undefined,
     };
 }
 

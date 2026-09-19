@@ -1,7 +1,10 @@
 @import "tailwindcss";
 
 @theme {
-  --font-sans: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  /* Self-hosted, so the page is not a different face on every machine.
+     Helvetica Neue would be the authentic sign face, but macOS does not
+     license it for redistribution. */
+  --font-sans: "Inter Variable", Inter, sans-serif;
 
   --color-paper: #141414;
   --color-sign: #000000;
@@ -26,6 +29,9 @@ body {
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+  /* The display-size name sets tight, and "ry" in particular collides in faces
+     whose kern pairs the browser skips. Ask for kerning explicitly. */
+  font-kerning: normal;
 }
 
 #root {
@@ -46,10 +52,30 @@ body {
 
 /* NYCTA standard: black panel, white stripe flush along the top edge. */
 .sign {
-  background: var(--color-sign);
+  position: relative;
   color: #fff;
+  /* The stripe is a background band, not a thick white border-top. A 6px white
+     border mitered into a visible diagonal where it met the 1px side borders,
+     and a real sign stripe is square-cut. The transparent top border still
+     holds the 6px of layout the stripe occupied, so nothing shifts. */
+  border: 0;
+  border-top: 6px solid transparent;
+  background:
+    linear-gradient(#fff 0 6px, transparent 6px) border-box,
+    var(--color-sign) border-box;
+}
+
+/* The 1px panel edge is an overlay with no top side. Drawing it as a border on
+   the panel itself would put a thin grey border in the same corner as the thick
+   stripe, and any two borders meeting at a corner are mitered into a diagonal.
+   With no top side there is no such corner, so the stripe stays square. */
+.sign::after {
+  content: '';
+  position: absolute;
+  inset: -6px 0 0 0;
   border: 1px solid var(--color-edge);
-  border-top: 6px solid #fff;
+  border-top: 0;
+  pointer-events: none;
 }
 
 .sign-in {
@@ -68,22 +94,51 @@ body {
 
 /* Route rows: press feedback, arrow nudges toward its direction on hover */
 .route {
-  transition: transform 120ms var(--ease-out);
+  transition:
+    transform 120ms var(--ease-out),
+    background-color 140ms var(--ease-out),
+    border-color 140ms var(--ease-out);
+}
+
+/* The whole row is the link, so give it a tap target taller than its text and
+   something for the hover state to fill. The negative margin cancels the
+   padding, so rows sit exactly where the panel padding puts them and the gaps
+   between them do not change. Panels that are themselves routes (the back
+   link) are left alone, since they already have their own padding. */
+.route:not(.sign) {
+  margin: -6px -12px;
+  padding: 6px 12px;
 }
 
 .route:active {
   transform: scale(0.985);
 }
 
+.route:not(.sign):focus-visible {
+  outline: 3px solid var(--color-yellow);
+  outline-offset: 0;
+}
+
 .arrow-r,
-.arrow-l {
+.arrow-l,
+.arrow-ur {
   transition: transform 180ms var(--ease-out);
 }
 
 @media (hover: hover) and (pointer: fine) {
+  .route:not(.sign):hover {
+    background-color: #1c1c1c;
+  }
+  /* The panel edge lives on the overlay now, so the hover state goes there. */
+  .sign.route:hover::after {
+    border-color: #4a4a4a;
+  }
   .route:hover .arrow-r,
   .text-link:hover .arrow-r {
     transform: translateX(3px);
+  }
+  .route:hover .arrow-ur {
+    transform: translate(3px, -3px);
   }
   .text-link:hover .arrow-l {
     transform: translateX(-3px);
@@ -124,24 +179,12 @@ body {
   transition: transform 400ms var(--ease-out);
 }
 
-/* Caption is a small sign panel that rides up from behind the platform edge */
-.tile-sign {
-  transform: translateY(100%);
-  transition: transform 200ms var(--ease-out);
-}
-
+/* The caption bar is always visible. It is the page's repeated motif and the
+   only thing naming a photo, and a hover-only version is invisible to every
+   touch visitor. */
 @media (hover: hover) and (pointer: fine) {
   .tile:hover .tile-img {
     transform: scale(1.02);
-  }
-  .tile:hover .tile-sign {
-    transform: translateY(0);
-  }
-}
-
-@media (hover: none) {
-  .tile-sign {
-    transform: translateY(0);
   }
 }
 
@@ -160,13 +203,11 @@ body {
       transform: none;
     }
   }
-  .tile-sign {
-    transition-duration: 0ms;
-  }
   .tile-img,
   .route,
   .arrow-r,
-  .arrow-l {
+  .arrow-l,
+  .arrow-ur {
     transition-duration: 0ms;
   }
 }

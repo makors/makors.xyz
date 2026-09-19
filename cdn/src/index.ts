@@ -127,6 +127,29 @@ async function upload(request: Request, env: Env): Promise<Response> {
     const key = `${randomId(8)}.${extension}`;
     const uploadedAt = new Date();
 
+    // A smaller rendition of a photo already uploaded. It joins that photo's
+    // srcset instead of becoming a separate entry on the page.
+    const variantOf = request.headers.get("X-Variant-Of");
+    if (variantOf) {
+        if (!FILE_KEY.test(variantOf)) return json(404, { error: "Unknown photo" });
+        if (!width) return json(400, { error: "A variant needs X-Image-Width" });
+
+        const { photos } = await readManifest(env.BUCKET);
+        const parent = photos.find((photo) => photo.key === variantOf);
+        if (!parent) return json(404, { error: "Unknown photo" });
+
+        await env.BUCKET.put(key, body, {
+            httpMetadata: { contentType, cacheControl: "public, max-age=31536000, immutable" },
+            customMetadata: { variantOf, uploadedAt: uploadedAt.toISOString() },
+        });
+
+        const src = `${env.PUBLIC_BASE.replace(/\/$/, "")}/f/${key}`;
+        parent.sources = [...(parent.sources ?? []).filter((s) => s.width !== width), { key, src, width }];
+        await writeManifest(env.BUCKET, photos);
+
+        return json(200, { key, src, width, variantOf });
+    }
+
     await env.BUCKET.put(key, body, {
         httpMetadata: { contentType, cacheControl: "public, max-age=31536000, immutable" },
         customMetadata: {
@@ -175,9 +198,15 @@ async function editPhoto(request: Request, env: Env, key: string): Promise<Respo
 
 async function removePhoto(env: Env, key: string): Promise<Response> {
     const { photos } = await readManifest(env.BUCKET);
+    const entry = photos.find((photo) => photo.key === key);
+
     await writeManifest(env.BUCKET, photos.filter((photo) => photo.key !== key));
-    await env.BUCKET.delete(key);
-    return json(200, { removed: key });
+
+    // Every rendition goes, not just the one the page links to.
+    const keys = [key, ...(entry?.sources ?? []).map((source) => source.key)];
+    await Promise.all(keys.map((each) => env.BUCKET.delete(each)));
+
+    return json(200, { removed: keys });
 }
 
 async function serveFile(request: Request, env: Env, key: string): Promise<Response> {

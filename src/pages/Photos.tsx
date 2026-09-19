@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Link } from 'react-router-dom'
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
-import { fetchPhotos, type Photo } from '../photos'
+import { fetchPhotos, srcSet, type Photo } from '../photos'
 import { ArrowLeft, Bullet } from '../sign'
 import { LINES } from '../lines'
 
@@ -137,8 +137,8 @@ export default function Photos() {
             I take photos on my{' '}
             <a href="https://www.usa.canon.com/shop/p/eos-r50" target="_blank" rel="noopener noreferrer" className="camera-link">
               Canon EOS R50
-            </a>{' '}
-            — and sometimes they look good.
+            </a>
+            . Sometimes they look good.
           </p>
         </header>
         <Link
@@ -162,11 +162,11 @@ export default function Photos() {
 
       <section
         aria-label="Photo grid"
-        className={photos.length === 0 ? 'hidden' : 'mt-10 flex items-start gap-6'}
+        className={photos.length === 0 ? 'hidden' : 'mt-10 flex items-start gap-3'}
         aria-busy={status === 'loading'}
       >
         {grid.map((col, c) => (
-          <div key={c} className="flex min-w-0 flex-1 flex-col gap-6">
+          <div key={c} className="flex min-w-0 flex-1 flex-col gap-3">
             {col.items.map(({ photo, index }) => (
               <button
                 key={photo.src}
@@ -188,6 +188,8 @@ export default function Photos() {
                 >
                   <img
                     src={photo.src}
+                    srcSet={srcSet(photo)}
+                    sizes="(min-width: 1024px) 384px, (min-width: 640px) 48vw, 92vw"
                     alt={photo.alt}
                     width={photo.width}
                     height={photo.height}
@@ -238,6 +240,8 @@ export default function Photos() {
               >
                 <img
                   src={openPhoto.src}
+                  srcSet={srcSet(openPhoto)}
+                  sizes="92vw"
                   alt={openPhoto.alt}
                   width={openPhoto.width}
                   height={openPhoto.height}

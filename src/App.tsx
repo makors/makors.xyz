@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { ArrowRight, Bullet } from './sign'
+import { ArrowRight, ArrowUpRight, Bullet } from './sign'
 import { LINES } from './lines'
 
 export default function App() {
@@ -31,7 +31,7 @@ export default function App() {
                   <span className="text-[20px] leading-6 font-medium">{line.label}</span>
                   <span className="truncate text-[15px] leading-[18px]">to {line.to}</span>
                 </span>
-                <ArrowRight />
+                {line.internal ? <ArrowRight /> : <ArrowUpRight />}
               </>
             )
             const className = 'route flex items-center gap-4'
