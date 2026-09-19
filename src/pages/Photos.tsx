@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Link } from 'react-router-dom'
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
-import { photos, type Photo } from '../photos'
+import { fetchPhotos, type Photo } from '../photos'
 import { ArrowLeft, Bullet } from '../sign'
 import { LINES } from '../lines'
 
@@ -62,8 +62,25 @@ function layout(items: Photo[], columns: number) {
 }
 
 export default function Photos() {
+  // The list lives on the CDN, so a new upload appears here without a deploy.
+  const [photos, setPhotos] = useState<Photo[]>([])
+  const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading')
+
+  useEffect(() => {
+    const controller = new AbortController()
+    fetchPhotos(controller.signal)
+      .then((list) => {
+        setPhotos(list)
+        setStatus('ready')
+      })
+      .catch((error) => {
+        if (error.name !== 'AbortError') setStatus('error')
+      })
+    return () => controller.abort()
+  }, [])
+
   const columns = useColumnCount()
-  const grid = useMemo(() => layout(photos, columns), [columns])
+  const grid = useMemo(() => layout(photos, columns), [photos, columns])
   const viewport = useViewport()
   const [open, setOpen] = useState<number | null>(null)
   // The tile stays hidden while its enlarged copy is in flight, then reappears once the copy lands.
@@ -134,18 +151,19 @@ export default function Photos() {
         </Link>
       </div>
 
-      {photos.length === 0 && (
+      {status !== 'loading' && photos.length === 0 && (
         <p
           className="sign sign-in mt-10 px-6 py-5 text-[18px] leading-6 sm:px-8 sm:text-[20px]"
           style={{ ['--i' as string]: 3 }}
         >
-          No photos up yet.
+          {status === 'error' ? 'The photos are not loading right now.' : 'No photos up yet.'}
         </p>
       )}
 
       <section
         aria-label="Photo grid"
         className={photos.length === 0 ? 'hidden' : 'mt-10 flex items-start gap-6'}
+        aria-busy={status === 'loading'}
       >
         {grid.map((col, c) => (
           <div key={c} className="flex min-w-0 flex-1 flex-col gap-6">

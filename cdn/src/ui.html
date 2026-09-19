@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
-<title>cdn upload</title>
+<title>photos</title>
 <style>
 :root {
     --bg: #0b0b0c;
@@ -12,8 +12,6 @@
     --line: #26262a;
     --text: #ededef;
     --muted: #8a8a92;
-    --accent: #ededef;
-    --ok: #4ade80;
     --bad: #f87171;
 }
 * { box-sizing: border-box; }
@@ -27,7 +25,7 @@ body {
     line-height: 1.5;
     -webkit-font-smoothing: antialiased;
 }
-main { max-width: 640px; margin: 0 auto; }
+main { max-width: 680px; margin: 0 auto; }
 h1 { font-size: 15px; font-weight: 500; margin: 0 0 4px; letter-spacing: -0.01em; }
 p.sub { margin: 0 0 32px; color: var(--muted); }
 #drop {
@@ -41,78 +39,59 @@ p.sub { margin: 0 0 32px; color: var(--muted); }
 }
 #drop:hover, #drop.over { border-color: #4a4a52; background: var(--surface); }
 #drop strong { color: var(--text); font-weight: 500; }
-.controls {
-    display: flex;
-    gap: 24px;
-    align-items: center;
-    flex-wrap: wrap;
-    margin: 20px 0 0;
-    color: var(--muted);
-}
+.controls { display: flex; gap: 24px; align-items: center; flex-wrap: wrap; margin-top: 20px; color: var(--muted); }
 .controls label { display: flex; align-items: center; gap: 8px; }
-select, input[type=range] { accent-color: var(--accent); }
 select {
-    background: var(--surface);
-    color: var(--text);
-    border: 1px solid var(--line);
-    border-radius: 4px;
-    padding: 4px 8px;
-    font: inherit;
+    background: var(--surface); color: var(--text);
+    border: 1px solid var(--line); border-radius: 4px;
+    padding: 4px 8px; font: inherit;
 }
-#list, #recent { display: flex; flex-direction: column; gap: 8px; }
-#list { margin: 32px 0 0; }
+h2 { font-size: 13px; font-weight: 500; color: var(--muted); margin: 40px 0 12px; }
+#list { display: flex; flex-direction: column; gap: 8px; }
 .item {
     background: var(--surface);
     border: 1px solid var(--line);
     border-radius: 6px;
-    padding: 12px 14px;
+    padding: 10px;
     display: flex;
-    flex-direction: column;
-    gap: 9px;
+    gap: 12px;
+    align-items: center;
 }
-.item .line { display: flex; gap: 12px; align-items: center; }
-.item .name { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-/* The manifest line is a copy target, not reading matter, so it stays in the
-   page's sans face rather than switching to monospace. */
-.entry {
-    font: inherit;
-    color: var(--muted);
-    font-size: 12.5px;
-    white-space: nowrap;
-    overflow-x: auto;
-    padding-bottom: 2px;
-    border-top: 1px solid var(--line);
-    padding-top: 9px;
+.item img {
+    width: 52px; height: 52px; flex: 0 0 auto;
+    object-fit: cover; border-radius: 4px; background: #1a1a1a;
 }
-.item .meta { color: var(--muted); flex: 0 0 auto; font-variant-numeric: tabular-nums; }
-.item a { color: var(--text); text-decoration: none; border-bottom: 1px solid var(--line); }
-.item a:hover { border-bottom-color: var(--muted); }
-.item.failed .meta { color: var(--bad); }
-button.copy {
-    background: none;
-    border: 1px solid var(--line);
-    color: var(--muted);
-    border-radius: 4px;
-    padding: 3px 10px;
-    font: inherit;
-    cursor: pointer;
-    flex: 0 0 auto;
+.body { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 5px; }
+.caption {
+    background: none; border: none; padding: 0; margin: 0;
+    font: inherit; color: var(--text); width: 100%;
 }
-button.copy:hover { color: var(--text); border-color: #4a4a52; }
-h2 { font-size: 13px; font-weight: 500; color: var(--muted); margin: 40px 0 12px; }
+.caption::placeholder { color: #5a5a62; }
+.caption:focus { outline: none; }
+.row { display: flex; gap: 10px; align-items: baseline; color: var(--muted); font-size: 12.5px; }
+.row a { color: var(--muted); text-decoration: none; border-bottom: 1px solid transparent; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.row a:hover { color: var(--text); border-bottom-color: var(--line); }
+.state { flex: 0 0 auto; font-variant-numeric: tabular-nums; }
+.actions { display: flex; gap: 6px; flex: 0 0 auto; }
+button {
+    background: none; border: 1px solid var(--line); color: var(--muted);
+    border-radius: 4px; padding: 3px 10px; font: inherit; font-size: 12.5px; cursor: pointer;
+}
+button:hover { color: var(--text); border-color: #4a4a52; }
+button.danger:hover { color: var(--bad); border-color: var(--bad); }
+.item.pending { color: var(--muted); }
+.item.failed .state { color: var(--bad); }
 @media (prefers-color-scheme: light) {
-    :root { --bg: #fff; --surface: #fafafa; --line: #e4e4e7; --text: #18181b; --muted: #71717a; --accent: #18181b; }
+    :root { --bg: #fff; --surface: #fafafa; --line: #e4e4e7; --text: #18181b; --muted: #71717a; }
 }
 </style>
 </head>
 <body>
 <main>
-    <h1>cdn upload</h1>
-    <p class="sub">Images are resized and re-encoded to WebP in this browser, then stored in R2.</p>
+    <h1>photos</h1>
+    <p class="sub">Uploads go live on makors.xyz/photos straight away. Type a caption and it saves on its own.</p>
 
-    <div id="drop" tabindex="0">
-        <strong>Drop images here</strong><br>or click to choose
-    </div>
+    <div id="drop" tabindex="0"><strong>Drop images here</strong><br>or click to choose</div>
     <input id="picker" type="file" accept="image/*" multiple hidden>
 
     <div class="controls">
@@ -127,26 +106,23 @@ h2 { font-size: 13px; font-weight: 500; color: var(--muted); margin: 40px 0 12px
         </label>
         <label>Quality
             <input id="quality" type="range" min="50" max="95" value="82">
-            <span id="qualityValue" class="meta">82</span>
+            <span id="qualityValue">82</span>
         </label>
     </div>
 
+    <h2 id="heading">Loading…</h2>
     <div id="list"></div>
-
-    <h2 id="recentHeading" hidden>Recent</h2>
-    <div id="recent"></div>
 </main>
 
 <script type="module">
 const PASS_THROUGH = new Set(["image/gif"]);
 const ALLOWED = new Set(["image/webp", "image/avif", "image/jpeg", "image/png", "image/gif"]);
-const STORE_KEY = "cdn.recent";
+const SAVE_DELAY = 600;
 
 const drop = document.getElementById("drop");
 const picker = document.getElementById("picker");
 const list = document.getElementById("list");
-const recent = document.getElementById("recent");
-const recentHeading = document.getElementById("recentHeading");
+const heading = document.getElementById("heading");
 const maxEdge = document.getElementById("maxEdge");
 const quality = document.getElementById("quality");
 const qualityValue = document.getElementById("qualityValue");
@@ -177,62 +153,121 @@ function formatBytes(bytes) {
     return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
 }
 
-/** A line ready to paste into src/photos.ts on the site. */
-function manifestEntry(upload) {
-    const dimensions = upload.width && upload.height
-        ? `, width: ${upload.width}, height: ${upload.height}`
-        : "";
-    return `  { src: '${upload.url}', alt: ''${dimensions}, caption: '' },`;
+const keyOf = (src) => src.split("/").pop();
+
+function countPhotos() {
+    const total = list.querySelectorAll(".item:not(.pending)").length;
+    heading.textContent = total === 0 ? "Nothing posted yet" : `${total} photo${total === 1 ? "" : "s"}`;
 }
 
-async function copy(value, button, label = "Copy") {
-    try {
-        await navigator.clipboard.writeText(value);
-        button.textContent = "Copied";
-    } catch {
-        button.textContent = "Failed";
-    }
-    setTimeout(() => { button.textContent = label; }, 1200);
-}
-
-function uploadRow(upload, note) {
+/** One posted photo: editable caption, link, and removal. */
+function photoRow(photo, note = "") {
+    const key = keyOf(photo.src);
     const element = document.createElement("div");
-    element.className = "item done";
+    element.className = "item";
     element.innerHTML = `
-        <div class="line">
-            <a class="name" target="_blank" rel="noreferrer"></a>
-            <span class="meta"></span>
-            <button class="copy" data-label="URL">URL</button>
-            <button class="copy" data-label="Entry">Entry</button>
+        <img loading="lazy" alt="">
+        <div class="body">
+            <input class="caption" type="text" maxlength="140" placeholder="Add a caption…">
+            <div class="row">
+                <a target="_blank" rel="noreferrer"></a>
+                <span class="state"></span>
+            </div>
         </div>
-        <code class="entry"></code>`;
+        <div class="actions">
+            <button class="copy">Copy</button>
+            <button class="danger">Remove</button>
+        </div>`;
 
+    element.querySelector("img").src = photo.src;
     const link = element.querySelector("a");
-    link.href = upload.url;
-    link.textContent = upload.url.replace(/^https?:\/\//, "");
-    element.querySelector(".meta").textContent = note ?? "";
+    link.href = photo.src;
+    link.textContent = key;
 
-    const entry = manifestEntry(upload);
-    element.querySelector(".entry").textContent = entry.trim();
+    const state = element.querySelector(".state");
+    state.textContent = note;
 
-    const [urlButton, entryButton] = element.querySelectorAll(".copy");
-    urlButton.onclick = () => copy(upload.url, urlButton, "URL");
-    entryButton.onclick = () => copy(entry, entryButton, "Entry");
-    return element;
+    const caption = element.querySelector(".caption");
+    caption.value = photo.caption ?? "";
+
+    let timer;
+    const save = async () => {
+        state.textContent = "saving…";
+        try {
+            const response = await fetch(`/api/photos/${key}`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ caption: caption.value }),
+            });
+            if (!response.ok) throw new Error(await response.text());
+            state.textContent = "saved";
+            setTimeout(() => { if (state.textContent === "saved") state.textContent = ""; }, 1400);
+        } catch {
+            state.textContent = "not saved";
+            element.classList.add("failed");
+        }
+    };
+
+    caption.oninput = () => {
+        element.classList.remove("failed");
+        clearTimeout(timer);
+        timer = setTimeout(save, SAVE_DELAY);
+    };
+    caption.onblur = () => { clearTimeout(timer); save(); };
+    caption.onkeydown = (event) => { if (event.key === "Enter") caption.blur(); };
+
+    const copyButton = element.querySelector(".copy");
+    copyButton.onclick = async () => {
+        try {
+            await navigator.clipboard.writeText(photo.src);
+            copyButton.textContent = "Copied";
+        } catch {
+            copyButton.textContent = "Failed";
+        }
+        setTimeout(() => { copyButton.textContent = "Copy"; }, 1200);
+    };
+
+    // Two taps rather than a browser dialog, which would block the page.
+    const removeButton = element.querySelector(".danger");
+    let armed = false;
+    removeButton.onclick = async () => {
+        if (!armed) {
+            armed = true;
+            removeButton.textContent = "Sure?";
+            setTimeout(() => { armed = false; removeButton.textContent = "Remove"; }, 3000);
+            return;
+        }
+        removeButton.textContent = "…";
+        try {
+            const response = await fetch(`/api/photos/${key}`, { method: "DELETE" });
+            if (!response.ok) throw new Error(await response.text());
+            element.remove();
+            countPhotos();
+        } catch {
+            removeButton.textContent = "Failed";
+        }
+    };
+
+    return { element, focusCaption: () => caption.focus() };
 }
 
 function pendingRow(name) {
     const element = document.createElement("div");
-    element.className = "item";
-    element.innerHTML = `<div class="line"><span class="name"></span><span class="meta">waiting</span></div>`;
+    element.className = "item pending";
+    element.innerHTML = `<div class="body"><span class="name"></span><div class="row"><span class="state">waiting</span></div></div>`;
     element.querySelector(".name").textContent = name;
     list.prepend(element);
     return {
         status: (label, failed = false) => {
-            element.querySelector(".meta").textContent = label;
+            element.querySelector(".state").textContent = label;
             element.classList.toggle("failed", failed);
         },
-        done: (upload, note) => element.replaceWith(uploadRow(upload, note)),
+        replace: (photo, note) => {
+            const row = photoRow(photo, note);
+            element.replaceWith(row.element);
+            countPhotos();
+            row.focusCaption();
+        },
     };
 }
 
@@ -247,7 +282,7 @@ async function process(file) {
         const { blob, type, width, height } = await compress(file);
 
         row.status("uploading");
-        const headers = { "Content-Type": type, "X-Original-Name": asciiOnly(file.name) };
+        const headers = { "Content-Type": type, "X-Original-Name": file.name.replace(/[^\x20-\x7e]/g, "") };
         if (width && height) {
             headers["X-Image-Width"] = String(width);
             headers["X-Image-Height"] = String(height);
@@ -256,11 +291,9 @@ async function process(file) {
         const response = await fetch("/api/upload", { method: "POST", headers, body: blob });
         if (!response.ok) throw new Error((await response.text()).slice(0, 200) || response.statusText);
 
-        const upload = await response.json();
-        const saved = file.size > 0 ? Math.max(0, Math.round((1 - upload.size / file.size) * 100)) : 0;
-        const dimensions = upload.width && upload.height ? ` · ${upload.width}×${upload.height}` : "";
-        row.done(upload, `${formatBytes(file.size)} → ${formatBytes(upload.size)} (${saved}% smaller)${dimensions}`);
-        remember(upload);
+        const photo = await response.json();
+        const saved = file.size > 0 ? Math.max(0, Math.round((1 - photo.size / file.size) * 100)) : 0;
+        row.replace(photo, `${formatBytes(file.size)} → ${formatBytes(photo.size)} (${saved}% smaller)`);
     } catch (error) {
         row.status(error.message || "failed", true);
     }
@@ -322,34 +355,18 @@ function keepOriginal(file, size) {
     return { blob: file, type: file.type, width: size?.width ?? null, height: size?.height ?? null };
 }
 
-function asciiOnly(value) {
-    return value.replace(/[^\x20-\x7e]/g, "");
-}
-
-function remember(upload) {
-    const kept = [upload, ...load().filter((item) => item.url !== upload.url)].slice(0, 12);
-    try { localStorage.setItem(STORE_KEY, JSON.stringify(kept)); } catch {}
-    // "Recent" is rendered once on load, so this session's own uploads are not
-    // listed twice.
-}
-
-function load() {
+async function loadPosted() {
     try {
-        const stored = JSON.parse(localStorage.getItem(STORE_KEY) || "[]");
-        // Entries saved before dimensions were recorded are bare URL strings.
-        return stored.map((item) => (typeof item === "string" ? { url: item } : item)).filter((item) => item?.url);
+        const response = await fetch("/photos.json", { cache: "no-store" });
+        const { photos } = await response.json();
+        for (const photo of photos) list.append(photoRow(photo).element);
+        countPhotos();
     } catch {
-        return [];
+        heading.textContent = "Could not load the photo list";
     }
 }
 
-function renderRecent() {
-    const uploads = load();
-    recentHeading.hidden = uploads.length === 0;
-    recent.replaceChildren(...uploads.map((upload) => uploadRow(upload, "")));
-}
-
-renderRecent();
+loadPosted();
 </script>
 </body>
 </html>

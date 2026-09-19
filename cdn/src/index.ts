@@ -1,4 +1,11 @@
 import { verifyAccessJwt } from "./access";
+import {
+    cleanText,
+    publicView,
+    readManifest,
+    writeManifest,
+    type PhotoEntry,
+} from "./manifest";
 import ui from "./ui.html";
 
 export interface Env {
@@ -19,6 +26,9 @@ const EXTENSION_BY_TYPE: Record<string, string> = {
 
 const MAX_UPLOAD_BYTES = 25 * 1024 * 1024;
 const ID_ALPHABET = "abcdefghijkmnpqrstuvwxyz23456789";
+/** Only generated image keys are reachable through /f/, so the manifest is not. */
+const FILE_KEY = /^[a-z0-9]{8}\.(webp|avif|jpg|png|gif)$/;
+const CAPTION_LIMIT = 140;
 
 export default {
     async fetch(request: Request, env: Env): Promise<Response> {
@@ -26,6 +36,7 @@ export default {
         const path = url.pathname;
 
         if (path.startsWith("/f/")) return serveFile(request, env, decodeURIComponent(path.slice(3)));
+        if (path === "/photos.json") return photosFeed(request, env);
 
         // Bare root bounces to /admin so the Access login flow is what the
         // visitor meets, rather than a flat 403 from the guard below.
@@ -44,11 +55,20 @@ export default {
             });
         }
 
-        if (path === "/api/upload") {
-            if (request.method !== "POST") return text(405, "Method not allowed");
+        if (path.startsWith("/api/")) {
             const denied = await guard(request, env);
             if (denied) return denied;
-            return upload(request, env);
+
+            if (path === "/api/upload" && request.method === "POST") return upload(request, env);
+
+            if (path.startsWith("/api/photos/")) {
+                const key = decodeURIComponent(path.slice("/api/photos/".length));
+                if (!FILE_KEY.test(key)) return json(404, { error: "Unknown photo" });
+                if (request.method === "PATCH") return editPhoto(request, env, key);
+                if (request.method === "DELETE") return removePhoto(env, key);
+            }
+
+            return json(405, { error: "Method not allowed" });
         }
 
         return text(404, "Not found");
@@ -63,6 +83,24 @@ async function guard(request: Request, env: Env): Promise<Response | null> {
     const identity = await verifyAccessJwt(request, env.ACCESS_TEAM_DOMAIN, env.ACCESS_AUD);
     if (!identity) return text(403, "Forbidden");
     return null;
+}
+
+/** The public photo list the site reads on every visit. */
+async function photosFeed(request: Request, env: Env): Promise<Response> {
+    const { photos, etag } = await readManifest(env.BUCKET);
+
+    const headers = new Headers({
+        "Content-Type": "application/json; charset=utf-8",
+        // Revalidate every time. The body is small, and a new upload should show
+        // up on the site immediately rather than after a cache window.
+        "Cache-Control": "public, no-cache",
+        "ETag": etag,
+        "Access-Control-Allow-Origin": "*",
+        "X-Content-Type-Options": "nosniff",
+    });
+
+    if (request.headers.get("If-None-Match") === etag) return new Response(null, { status: 304, headers });
+    return new Response(JSON.stringify({ photos: photos.map(publicView) }), { headers });
 }
 
 async function upload(request: Request, env: Env): Promise<Response> {
@@ -81,35 +119,71 @@ async function upload(request: Request, env: Env): Promise<Response> {
         return json(413, { error: `File is over the ${Math.round(MAX_UPLOAD_BYTES / 1024 / 1024)}MB limit.` });
     }
 
-    // The browser knows the encoded dimensions; the site's photo manifest needs
-    // them to reserve grid space, so they travel with the upload.
+    // The browser knows the encoded dimensions; the photo grid needs them to
+    // reserve space so it does not shift as images arrive.
     const width = positiveInteger(request.headers.get("X-Image-Width"));
     const height = positiveInteger(request.headers.get("X-Image-Height"));
 
     const key = `${randomId(8)}.${extension}`;
+    const uploadedAt = new Date();
+
     await env.BUCKET.put(key, body, {
-        httpMetadata: {
-            contentType,
-            cacheControl: "public, max-age=31536000, immutable",
-        },
+        httpMetadata: { contentType, cacheControl: "public, max-age=31536000, immutable" },
         customMetadata: {
-            originalName: sanitizeName(request.headers.get("X-Original-Name")),
-            uploadedAt: new Date().toISOString(),
-            ...(width && height ? { width: String(width), height: String(height) } : {}),
+            originalName: cleanText(request.headers.get("X-Original-Name"), 120),
+            uploadedAt: uploadedAt.toISOString(),
         },
     });
 
-    const base = env.PUBLIC_BASE.replace(/\/$/, "");
-    return json(200, { key, url: `${base}/f/${key}`, size: body.byteLength, width, height });
+    const entry: PhotoEntry = {
+        key,
+        src: `${env.PUBLIC_BASE.replace(/\/$/, "")}/f/${key}`,
+        alt: "",
+        caption: "",
+        date: String(uploadedAt.getUTCFullYear()),
+        width,
+        height,
+        uploadedAt: uploadedAt.toISOString(),
+    };
+
+    const { photos } = await readManifest(env.BUCKET);
+    await writeManifest(env.BUCKET, [entry, ...photos.filter((photo) => photo.key !== key)]);
+
+    return json(200, { ...entry, size: body.byteLength });
+}
+
+async function editPhoto(request: Request, env: Env, key: string): Promise<Response> {
+    let patch: { caption?: unknown; alt?: unknown; date?: unknown };
+    try {
+        patch = await request.json();
+    } catch {
+        return json(400, { error: "Expected JSON" });
+    }
+
+    const { photos } = await readManifest(env.BUCKET);
+    const index = photos.findIndex((photo) => photo.key === key);
+    if (index === -1) return json(404, { error: "Unknown photo" });
+
+    const entry = photos[index];
+    if ("caption" in patch) entry.caption = cleanText(patch.caption, CAPTION_LIMIT);
+    if ("alt" in patch) entry.alt = cleanText(patch.alt, CAPTION_LIMIT);
+    if ("date" in patch) entry.date = cleanText(patch.date, 12);
+
+    await writeManifest(env.BUCKET, photos);
+    return json(200, entry);
+}
+
+async function removePhoto(env: Env, key: string): Promise<Response> {
+    const { photos } = await readManifest(env.BUCKET);
+    await writeManifest(env.BUCKET, photos.filter((photo) => photo.key !== key));
+    await env.BUCKET.delete(key);
+    return json(200, { removed: key });
 }
 
 async function serveFile(request: Request, env: Env, key: string): Promise<Response> {
-    if (!key || key.includes("/")) return text(404, "Not found");
+    if (!FILE_KEY.test(key)) return text(404, "Not found");
 
-    const object = await env.BUCKET.get(key, {
-        range: request.headers,
-        onlyIf: request.headers,
-    });
+    const object = await env.BUCKET.get(key, { range: request.headers, onlyIf: request.headers });
     if (!object) return text(404, "Not found");
 
     const headers = new Headers();
@@ -123,7 +197,7 @@ async function serveFile(request: Request, env: Env, key: string): Promise<Respo
     headers.set("Content-Security-Policy", "default-src 'none'; sandbox");
 
     if (!("body" in object) || object.body === null) {
-        // A conditional request matched, or the caller sent HEAD-like preconditions.
+        // A conditional request matched, so the caller already has the bytes.
         return new Response(null, { status: 304, headers });
     }
 
@@ -141,11 +215,6 @@ function randomId(length: number): string {
 function positiveInteger(value: string | null): number | null {
     const parsed = Number(value);
     return Number.isSafeInteger(parsed) && parsed > 0 ? parsed : null;
-}
-
-function sanitizeName(name: string | null): string {
-    if (!name) return "";
-    return name.replace(/[^\w.\- ]/g, "").slice(0, 120);
 }
 
 function json(status: number, body: unknown): Response {
